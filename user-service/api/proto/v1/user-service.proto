@@ -1,0 +1,48 @@
+syntax = "proto3";
+package v1;
+
+import "google/api/annotations.proto";
+
+message User {
+    int64 id = 1;
+
+    string name = 2;
+
+    string lastName = 3;
+
+    string email = 4;
+
+    string phoneNumber = 5;
+}
+
+message ReadRequest{
+    string api = 1;
+
+    int64 id = 2;
+}
+
+message ReadResponse{
+    string api = 1;
+
+    User user = 2;
+}
+
+message FindUserByPhoneRequest{
+    string api = 1;
+
+    string phoneNumber = 2;
+}
+
+message FindUserByPhoneResponse{
+    string api = 1;
+
+    User user = 2;
+}
+
+service UserService {
+
+    rpc Read(ReadRequest) returns (ReadResponse);
+
+    rpc FindUserByPhone(FindUserByPhoneRequest) returns (FindUserByPhoneResponse);
+
+}

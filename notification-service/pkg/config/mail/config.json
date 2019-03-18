@@ -1,0 +1,8 @@
+{
+  "SenderId": "hoangtran14032019@gmail.com",
+  "Password": "Abcd@1234",
+  "Host":  "smtp.gmail.com",
+  "Port":  "465",
+  "AdminId" : "hoangbktech@gmail.com",
+  "AlertSubject": "Tickets have been sold over 85%"
+}

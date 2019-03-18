@@ -1,0 +1,37 @@
+syntax = "proto3";
+package v1;
+
+import "google/api/annotations.proto";
+
+
+message EmailRequest {
+    string api = 1;
+
+    repeated string recipientIds = 2;
+
+    string subject = 3;
+
+    string body = 4;
+
+}
+
+message SMSRequest {
+    string api = 1;
+
+    string phoneNumber = 2;
+
+    string content = 3;
+
+}
+
+
+message NotificationResponse {
+    string api = 1;
+
+    string status = 2;
+}
+
+service NotificationService {
+
+
+}

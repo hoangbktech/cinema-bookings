@@ -1,0 +1,81 @@
+syntax = "proto3";
+package v1;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+		title: "Booking service";
+		version: "1.0";
+		contact: {
+			name: "cinema-bookings";
+			url: "https://github.com/hoangbktech/cinema-bookings";
+			email: "hoangbktech@gmail.com";
+        };
+    };
+    schemes: HTTP;
+    consumes: "application/json";
+    produces: "application/json";
+    responses: {
+		key: "404";
+		value: {
+			description: "Returned when the resource does not exist.";
+			schema: {
+				json_schema: {
+					type: STRING;
+				}
+			}
+		}
+	}
+};
+
+
+message Ticket {
+    string api = 1;
+
+    string cinema = 2;
+
+    string movie = 3;
+
+    string orderId = 4;
+
+    int64 totalAmount = 5;
+
+    User user = 6;
+
+}
+
+message User {
+
+    string name = 1;
+
+    string lastName = 2;
+
+    string email = 3;
+
+    string phoneNumber = 4;
+}
+
+message BookingRequest {
+    string api = 1;
+
+    int64 showingId = 2;
+
+    int64 totalAmount = 3;
+
+    string phoneNumber = 4;
+
+}
+
+
+service BookingService {
+
+    rpc createBooking(BookingRequest) returns (Ticket) {
+        option (google.api.http) = {
+                    post: "/v1/booking"
+                    body: "*"
+                };
+    }
+
+}

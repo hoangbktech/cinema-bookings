@@ -1,0 +1,117 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Booking service",
+    "version": "1.0",
+    "contact": {
+      "name": "cinema-bookings",
+      "url": "https://github.com/hoangbktech/cinema-bookings",
+      "email": "hoangbktech@gmail.com"
+    }
+  },
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/booking": {
+      "post": {
+        "operationId": "createBooking",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Ticket"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1BookingRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BookingService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "v1BookingRequest": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "showingId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "totalAmount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "phoneNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Ticket": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "cinema": {
+          "type": "string"
+        },
+        "movie": {
+          "type": "string"
+        },
+        "orderId": {
+          "type": "string"
+        },
+        "totalAmount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "user": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

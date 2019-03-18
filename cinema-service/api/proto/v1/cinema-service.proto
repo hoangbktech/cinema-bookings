@@ -1,0 +1,81 @@
+syntax = "proto3";
+package v1;
+
+import "google/api/annotations.proto";
+
+message Cinema {
+
+    int64 id = 1;
+
+    string name = 2;
+
+    int64 capacity = 3;
+
+}
+
+message Showing {
+
+    int64 id = 1;
+
+    int64 movieId = 2;
+
+    string time = 3;
+
+    int64 isNotify = 4;
+
+    int64 ticketAmounts = 5;
+
+    Cinema cinema = 6;
+
+}
+
+message ReadCinemaRequest{
+    string api = 1;
+
+    int64 id = 2;
+}
+
+message ReadCinemaResponse{
+    string api = 1;
+
+    Cinema cinema = 2;
+}
+
+
+message ReadShowingRequest{
+    string api = 1;
+
+    int64 id = 2;
+}
+
+
+message ReadShowingResponse{
+    string api = 1;
+
+    Showing showing = 2;
+}
+
+message SetNotifyRequest{
+    string api = 1;
+
+    int64 showingId = 2;
+
+    int64 value = 3;
+}
+
+message SetNotifyResponse{
+    string api = 1;
+
+    int64 result = 2;
+}
+
+
+service CinemaService {
+
+    rpc ReadCinema(ReadCinemaRequest) returns (ReadCinemaResponse);
+
+    rpc ReadShowing(ReadShowingRequest) returns (ReadShowingResponse);
+
+    rpc SetNotify(SetNotifyRequest) returns (SetNotifyResponse);
+
+}

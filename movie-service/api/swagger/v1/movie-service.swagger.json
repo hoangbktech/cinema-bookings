@@ -1,0 +1,102 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Movie service",
+    "version": "1.0",
+    "contact": {
+      "name": "cinema-bookings project",
+      "url": "https://github.com/hoangbktech/cinema-bookings",
+      "email": "hoangbktech@gmail.com"
+    }
+  },
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/movie/{id}": {
+      "get": {
+        "summary": "Read movie",
+        "operationId": "Read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReadResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Unique integer identifier of the movie",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "api",
+            "description": "API versioning: it is my best practice to specify version explicitly.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MovieService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "v1Movie": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unique integer identifier of the movie"
+        },
+        "title": {
+          "type": "string",
+          "title": "Title of the movie"
+        },
+        "description": {
+          "type": "string",
+          "title": "Detail description of the movie"
+        },
+        "reminder": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Date and time to remind the movie"
+        }
+      },
+      "title": "Movie"
+    },
+    "v1ReadResponse": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string",
+          "title": "API versioning: it is my best practice to specify version explicitly"
+        },
+        "movie": {
+          "$ref": "#/definitions/v1Movie",
+          "title": "Movie entity read by ID"
+        }
+      }
+    }
+  }
+}

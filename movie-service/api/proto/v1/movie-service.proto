@@ -1,0 +1,39 @@
+syntax = "proto3";
+package v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+// Movie
+message Movie {
+    // Unique integer identifier of the movie
+    int64 id = 1;
+    // Title of the movie
+    string title = 2;
+    // Detail description of the movie
+    string description = 3;
+
+}
+
+message ReadMovieRequest{
+    // API versioning: it is my best practice to specify version explicitly
+    string api = 1;
+
+    // Unique integer identifier of the movie
+    int64 id = 2;
+}
+
+message ReadMovieResponse{
+    // API versioning: it is my best practice to specify version explicitly
+    string api = 1;
+
+    // Movie entity read by ID
+    Movie movie = 2;
+}
+
+service MovieService {
+
+    // Read movie
+    rpc Read(ReadMovieRequest) returns (ReadMovieResponse);
+
+}

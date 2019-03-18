@@ -1,0 +1,54 @@
+syntax = "proto3";
+package v1;
+
+import "google/api/annotations.proto";
+
+message Ticket {
+    string api = 1;
+
+    string cinema = 2;
+
+    string movie = 3;
+
+    string orderId = 4;
+
+    int64 totalAmount = 5;
+
+    User user = 6;
+
+}
+
+message User {
+
+    string name = 1;
+
+    string lastName = 2;
+
+    string email = 3;
+
+    string phoneNumber = 4;
+}
+
+message HTMLResponse {
+    string api = 1;
+
+    string html = 2;
+
+}
+
+message AlertTemplateRequest {
+    string api = 1;
+
+    string cinema = 2;
+
+    string movie = 3;
+}
+
+
+
+service DocumentService {
+
+    rpc createTicketEmailTemplate(Ticket) returns (HTMLResponse);
+    rpc createAlertEmailTemplate(AlertTemplateRequest) returns (HTMLResponse);
+
+}
