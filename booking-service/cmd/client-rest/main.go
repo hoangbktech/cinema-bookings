@@ -21,7 +21,7 @@ func main() {
 		{
 			"api":"v1",
 			"showingId": 2,
-			"totalAmount": 60,
+			"totalAmount": 80,
 			"phoneNumber": "0934347073"
 		}
 	`)))
@@ -36,6 +36,5 @@ func main() {
 		body = string(bodyBytes)
 	}
 	log.Printf("Create response: Code=%d, Body=%s\n\n", resp.StatusCode, body)
-
 
 }

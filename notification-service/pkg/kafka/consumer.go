@@ -15,11 +15,11 @@ const (
 
 type KafkaConsumer struct {
 	ZookeeperHost string
-	Topic string
+	Topic         string
 	ConsumerGroup *consumergroup.ConsumerGroup
 }
 
-func (kc *KafkaConsumer) Init(){
+func (kc *KafkaConsumer) Init() error {
 	// consumer config
 	config := consumergroup.NewConfig()
 	config.Offsets.Initial = sarama.OffsetOldest
@@ -28,9 +28,11 @@ func (kc *KafkaConsumer) Init(){
 	// join to consumer group
 	cg, err := consumergroup.JoinConsumerGroup(cgroup, []string{kc.Topic}, []string{kc.ZookeeperHost}, config)
 	if err != nil {
-		log.Fatal("there is an error in consumer initialization")
+		log.Print("there is an error in consumer initialization")
+		return err
 	}
 	kc.ConsumerGroup = cg
+	return nil
 }
 
 func (kc *KafkaConsumer) Consume(fn model.ProcessMessage) {

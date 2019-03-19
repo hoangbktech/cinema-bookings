@@ -27,20 +27,20 @@ const (
 
 var (
 	notificationServer *notificationServiceServer
-	ctx context.Context
+	ctx                context.Context
 )
 
 type notificationServiceServer struct {
 	documentClient v12.DocumentServiceClient
 }
 
-
-
-func NewNotificationServiceServer(contxt context.Context, consumer kafka.KafkaConsumer, documentClient v12.DocumentServiceClient) v1.NotificationServiceServer  {
-	server := &notificationServiceServer{documentClient:documentClient}
+func NewNotificationServiceServer(contxt context.Context, consumer kafka.KafkaConsumer, documentClient v12.DocumentServiceClient) v1.NotificationServiceServer {
+	server := &notificationServiceServer{documentClient: documentClient}
 	notificationServer = server
 	ctx = contxt
-	consumer.Consume(handle)
+	if err := consumer.Init(); err == nil {
+		go consumer.Consume(handle)
+	}
 	return server
 }
 
@@ -52,12 +52,12 @@ func handle(data []byte) error {
 	}
 
 	switch notification.Method {
-		case model.EMAIL:
-			notificationServer.SendEmail(notification)
-			break
-		case model.SMS:
-			notificationServer.SendSMS(notification)
-			break
+	case model.EMAIL:
+		notificationServer.SendEmail(notification)
+		break
+	case model.SMS:
+		notificationServer.SendSMS(notification)
+		break
 	}
 
 	return nil
@@ -83,18 +83,18 @@ func (s *notificationServiceServer) SendEmail(notification *model.Notification) 
 	ma.SenderId = configuration.SenderId
 
 	switch notification.Type {
-		case model.ALERT :
-			htmlResponse, err := notificationServer.documentClient.CreateAlertEmailTemplate(ctx, &v12.AlertTemplateRequest{Api: apiVersion, Cinema: notification.Payload.Cinema, Movie: notification.Payload.Movie})
-			if err != nil {
-				log.Fatal("there is error while calling document service for template generating")
-				return 0, err
-			}
-			ma.ToIds = []string{configuration.AdminId}
-			ma.Subject = configuration.AlertSubject
-			ma.Body = htmlResponse.Html
-			break
-		case model.INFORM:
-			break
+	case model.ALERT:
+		htmlResponse, err := notificationServer.documentClient.CreateAlertEmailTemplate(ctx, &v12.AlertTemplateRequest{Api: apiVersion, Cinema: notification.Payload.Cinema, Movie: notification.Payload.Movie})
+		if err != nil {
+			log.Fatal("there is error while calling document service for template generating")
+			return 0, err
+		}
+		ma.ToIds = []string{configuration.AdminId}
+		ma.Subject = configuration.AlertSubject
+		ma.Body = htmlResponse.Html
+		break
+	case model.INFORM:
+		break
 	}
 
 	messageBody := ma.BuildMessage()
@@ -166,6 +166,3 @@ func getFileName(filename string) string {
 
 	return filePath
 }
-
-
-

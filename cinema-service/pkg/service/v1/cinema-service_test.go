@@ -1,14 +1,14 @@
 package v1
 
 import (
-"context"
-"errors"
-"reflect"
-"testing"
+	"context"
+	"errors"
+	"reflect"
+	"testing"
 
-"gopkg.in/DATA-DOG/go-sqlmock.v1"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-"github.com/hoangbktech/cinema-bookings/cinema-service/pkg/api/v1"
+	"github.com/hoangbktech/cinema-bookings/cinema-service/pkg/api/v1"
 )
 
 func Test_cinemaServiceServer_Read(t *testing.T) {
@@ -43,15 +43,16 @@ func Test_cinemaServiceServer_Read(t *testing.T) {
 				},
 			},
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"ID", "Name"}).
-					AddRow(1, "name")
-				mock.ExpectQuery("SELECT (.+) FROM Cinema").WithArgs(1).WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"id", "name", "capacity"}).
+					AddRow(1, "name", 100)
+				mock.ExpectQuery("SELECT (.+) FROM cinemas").WithArgs(1).WillReturnRows(rows)
 			},
 			want: &v1.ReadCinemaResponse{
 				Api: "v1",
 				Cinema: &v1.Cinema{
-					Id:          1,
-					Name:       "name",
+					Id:       1,
+					Name:     "name",
+					Capacity: 100,
 				},
 			},
 		},
@@ -79,7 +80,7 @@ func Test_cinemaServiceServer_Read(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mock.ExpectQuery("SELECT (.+) FROM Cinema").WithArgs(1).
+				mock.ExpectQuery("SELECT (.+) FROM cinemas").WithArgs(1).
 					WillReturnError(errors.New("SELECT failed"))
 			},
 			wantErr: true,
@@ -95,7 +96,7 @@ func Test_cinemaServiceServer_Read(t *testing.T) {
 				},
 			},
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"ID", "Name"})
+				rows := sqlmock.NewRows([]string{"id", "name", "capacity"})
 				mock.ExpectQuery("SELECT (.+) FROM Cinema").WithArgs(1).WillReturnRows(rows)
 			},
 			wantErr: true,

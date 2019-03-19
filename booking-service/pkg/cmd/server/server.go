@@ -28,10 +28,10 @@ type Config struct {
 	// gRPC is TCP port to listen by gRPC server
 	GRPCPort string
 
-	UserServerAddress string
-	MovieServerAddress string
-	CinemaServerAddress string
-	DocumentServerAddress string
+	UserServerAddress         string
+	MovieServerAddress        string
+	CinemaServerAddress       string
+	DocumentServerAddress     string
 	NotificationServerAddress string
 
 	// DB Datastore parameters section
@@ -55,7 +55,7 @@ type Config struct {
 
 	HTTPPort string
 
-	KafkaHost string
+	KafkaHost  string
 	KafkaTopic string
 }
 
@@ -65,20 +65,20 @@ func RunServer() error {
 
 	// get configuration
 	var cfg Config
-	flag.StringVar(&cfg.GRPCPort, "grpc-port", "", "gRPC port to bind")
+	flag.StringVar(&cfg.GRPCPort, "grpc-port", "9080", "gRPC port to bind")
 	flag.StringVar(&cfg.HTTPPort, "http-port", "", "HTTP port to bind")
-	flag.StringVar(&cfg.DatastoreDBHost, "db-host", "", "Database host")
-	flag.StringVar(&cfg.DatastoreDBUser, "db-user", "", "Database user")
-	flag.StringVar(&cfg.DatastoreDBPassword, "db-password", "", "Database password")
-	flag.StringVar(&cfg.DatastoreDBSchema, "db-schema", "", "Database schema")
+	flag.StringVar(&cfg.DatastoreDBHost, "db-host", "localhost:3306", "Database host")
+	flag.StringVar(&cfg.DatastoreDBUser, "db-user", "root", "Database user")
+	flag.StringVar(&cfg.DatastoreDBPassword, "db-password", "root", "Database password")
+	flag.StringVar(&cfg.DatastoreDBSchema, "db-schema", "bookings", "Database schema")
 	flag.StringVar(&cfg.LogTimeFormat, "log-time-format", "",
 		"Print time format for logger e.g. 2006-01-02T15:04:05Z07:00")
 
-	flag.StringVar(&cfg.UserServerAddress, "user-service-addr", "localhost:9091", "")
-	flag.StringVar(&cfg.CinemaServerAddress, "cinema-service-addr", "localhost:9092", "")
-	flag.StringVar(&cfg.MovieServerAddress, "movie-service-addr", "localhost:9093", "")
-	flag.StringVar(&cfg.DocumentServerAddress, "doc-service-addr", "localhost:9094", "")
-	flag.StringVar(&cfg.NotificationServerAddress, "noti-service-addr", "localhost:9095", "")
+	flag.StringVar(&cfg.UserServerAddress, "user-service-addr", "localhost:9081", "")
+	flag.StringVar(&cfg.CinemaServerAddress, "cinema-service-addr", "localhost:9082", "")
+	flag.StringVar(&cfg.MovieServerAddress, "movie-service-addr", "localhost:9083", "")
+	flag.StringVar(&cfg.DocumentServerAddress, "doc-service-addr", "localhost:9084", "")
+	flag.StringVar(&cfg.NotificationServerAddress, "noti-service-addr", "localhost:9085", "")
 
 	flag.StringVar(&cfg.JaegerAddr, "jaeger-service-addr", "localhost:9092", "")
 	flag.StringVar(&cfg.ConsulAddr, "consul-service-addr", "localhost:9093", "")
@@ -148,7 +148,6 @@ func RunServer() error {
 	}
 	defer documentConn.Close()
 	documentClient := doc.NewDocumentServiceClient(documentConn)
-
 
 	// Kafka Producer
 	kafkaProducer := &kafka.KafkaProducer{KafkaHost: cfg.KafkaHost, Topic: cfg.KafkaTopic}

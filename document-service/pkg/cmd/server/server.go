@@ -17,7 +17,6 @@ type Config struct {
 	// gRPC is TCP port to listen by gRPC server
 	GRPCPort string
 
-
 	// Log parameters section
 	// LogLevel is global log level: Debug(-1), Info(0), Warn(1), Error(2), DPanic(3), Panic(4), Fatal(5)
 	LogLevel int
@@ -31,7 +30,7 @@ func RunServer() error {
 
 	// get configuration
 	var cfg Config
-	flag.StringVar(&cfg.GRPCPort, "grpc-port", "", "gRPC port to bind")
+	flag.StringVar(&cfg.GRPCPort, "grpc-port", "9084", "gRPC port to bind")
 
 	flag.IntVar(&cfg.LogLevel, "log-level", 0, "Global log level")
 	flag.StringVar(&cfg.LogTimeFormat, "log-time-format", "",

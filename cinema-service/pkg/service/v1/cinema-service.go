@@ -46,8 +46,6 @@ func (s *cinemaServiceServer) connect(ctx context.Context) (*sql.Conn, error) {
 	return c, nil
 }
 
-
-
 // Read cinema
 func (s *cinemaServiceServer) ReadCinema(ctx context.Context, req *v1.ReadCinemaRequest) (*v1.ReadCinemaResponse, error) {
 	// check if the API version requested by client is supported by server
@@ -63,7 +61,7 @@ func (s *cinemaServiceServer) ReadCinema(ctx context.Context, req *v1.ReadCinema
 	defer c.Close()
 
 	// query Cinema by ID
-	rows, err := c.QueryContext(ctx, "SELECT `ID`, `Name`, `Capacity` FROM Cinema WHERE `ID`=?",
+	rows, err := c.QueryContext(ctx, "SELECT `id`, `name`, `capacity` FROM cinemas WHERE `id`=?",
 		req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to select from Cinema-> "+err.Error())
@@ -90,7 +88,7 @@ func (s *cinemaServiceServer) ReadCinema(ctx context.Context, req *v1.ReadCinema
 	}
 
 	return &v1.ReadCinemaResponse{
-		Api:  apiVersion,
+		Api:    apiVersion,
 		Cinema: &cn,
 	}, nil
 
@@ -110,7 +108,7 @@ func (s *cinemaServiceServer) ReadShowing(ctx context.Context, req *v1.ReadShowi
 	}
 	defer c.Close()
 
-	rows, err := c.QueryContext(ctx, "SELECT `ID`, `MovieId`, `CinemaId`, `TicketAmounts` FROM Showing WHERE `ID`=?",
+	rows, err := c.QueryContext(ctx, "SELECT `id`, `movie_id`, `cinema_id`, `ticket_amounts` FROM showings WHERE `id`=?",
 		req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to select from Showing-> "+err.Error())
@@ -138,7 +136,7 @@ func (s *cinemaServiceServer) ReadShowing(ctx context.Context, req *v1.ReadShowi
 	sw.Cinema = cinema
 
 	return &v1.ReadShowingResponse{
-		Api:  apiVersion,
+		Api:     apiVersion,
 		Showing: &sw,
 	}, nil
 
@@ -151,7 +149,7 @@ func (s *cinemaServiceServer) ReadCinemaById(ctx context.Context, id int64) (*v1
 	}
 	defer c.Close()
 
-	rows, err := c.QueryContext(ctx, "SELECT `ID`, `Name`, `Capacity` FROM Cinema WHERE `ID`=?", id)
+	rows, err := c.QueryContext(ctx, "SELECT `id`, `name`, `capacity` FROM cinemas WHERE `id`=?", id)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to select from Cinema-> "+err.Error())
 	}
@@ -180,18 +178,13 @@ func (s *cinemaServiceServer) SetNotify(ctx context.Context, req *v1.SetNotifyRe
 	}
 	defer c.Close()
 
-	result, err := c.ExecContext(ctx, "UPDATE Showing SET `IsNotify` = ? WHERE `ID` = ? AND `IsNotify` = 0",
-		&req.Value, &req.ShowingId)
+	result, err := c.ExecContext(ctx, "UPDATE showings SET `is_notify` = 1 WHERE `id` = ? AND `is_notify` = 0", &req.ShowingId)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to set notify> "+err.Error())
 	}
 	rowAffected, err := result.RowsAffected()
 	return &v1.SetNotifyResponse{
-		Api:apiVersion,
+		Api:    apiVersion,
 		Result: rowAffected,
 	}, nil
 }
-
-
-
-

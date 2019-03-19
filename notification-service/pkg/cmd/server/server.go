@@ -10,10 +10,10 @@ import (
 
 	// mysql driver
 	_ "github.com/go-sql-driver/mysql"
+	doc "github.com/hoangbktech/cinema-bookings/document-service/pkg/api/v1"
 	"github.com/hoangbktech/cinema-bookings/notification-service/pkg/protocol/grpc"
 	"github.com/hoangbktech/cinema-bookings/notification-service/pkg/service/v1"
 	grpc2 "google.golang.org/grpc"
-	doc "github.com/hoangbktech/cinema-bookings/document-service/pkg/api/v1"
 )
 
 // Config is configuration for Server
@@ -24,7 +24,6 @@ type Config struct {
 
 	DocumentServerAddress string
 
-
 	// Log parameters section
 	// LogLevel is global log level: Debug(-1), Info(0), Warn(1), Error(2), DPanic(3), Panic(4), Fatal(5)
 	LogLevel int
@@ -32,7 +31,7 @@ type Config struct {
 	LogTimeFormat string
 
 	ZookeeperHost string
-	Topic string
+	Topic         string
 }
 
 // RunServer runs gRPC server and HTTP gateway
@@ -41,15 +40,15 @@ func RunServer() error {
 
 	// get configuration
 	var cfg Config
-	flag.StringVar(&cfg.GRPCPort, "grpc-port", "", "gRPC port to bind")
+	flag.StringVar(&cfg.GRPCPort, "grpc-port", "9085", "gRPC port to bind")
 
 	flag.IntVar(&cfg.LogLevel, "log-level", 0, "Global log level")
 	flag.StringVar(&cfg.LogTimeFormat, "log-time-format", "",
 		"Print time format for logger e.g. 2006-01-02T15:04:05Z07:00")
-	flag.StringVar(&cfg.ZookeeperHost, "zk-host", "", "")
-	flag.StringVar(&cfg.Topic, "topic", "", "")
+	flag.StringVar(&cfg.ZookeeperHost, "zk-host", "localhost:2181", "")
+	flag.StringVar(&cfg.Topic, "topic", "notification", "")
 
-	flag.StringVar(&cfg.DocumentServerAddress, "doc-service-addr", "localhost:9094", "")
+	flag.StringVar(&cfg.DocumentServerAddress, "doc-service-addr", "localhost:9084", "")
 	flag.Parse()
 
 	if len(cfg.GRPCPort) == 0 {
@@ -61,8 +60,7 @@ func RunServer() error {
 		return fmt.Errorf("failed to initialize logger: %v", err)
 	}
 
-	consumer := kafka.KafkaConsumer{ZookeeperHost:cfg.ZookeeperHost, Topic:cfg.Topic}
-	consumer.Init()
+	consumer := kafka.KafkaConsumer{ZookeeperHost: cfg.ZookeeperHost, Topic: cfg.Topic}
 
 	// DocumentClient
 	documentConn, err := grpc2.Dial(cfg.DocumentServerAddress, grpc2.WithInsecure())

@@ -60,7 +60,7 @@ func (s *movieServiceServer) Read(ctx context.Context, req *v1.ReadMovieRequest)
 	defer c.Close()
 
 	// query Movie by ID
-	rows, err := c.QueryContext(ctx, "SELECT `ID`, `Title`, `Description` FROM Movie WHERE `ID`=?",
+	rows, err := c.QueryContext(ctx, "SELECT `id`, `title`, `description` FROM movies WHERE `id`=?",
 		req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to select from Movie-> "+err.Error())
@@ -87,7 +87,7 @@ func (s *movieServiceServer) Read(ctx context.Context, req *v1.ReadMovieRequest)
 	}
 
 	return &v1.ReadMovieResponse{
-		Api:  apiVersion,
+		Api:   apiVersion,
 		Movie: &td,
 	}, nil
 

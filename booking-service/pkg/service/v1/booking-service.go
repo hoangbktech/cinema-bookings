@@ -26,24 +26,24 @@ var (
 
 const (
 	// apiVersion is version of API is provided by server
-	apiVersion = "v1"
+	apiVersion            = "v1"
 	notificationThreshold = 0.25
 )
 
 type bookingServiceServer struct {
-	db *sql.DB
-	userClient  usr.UserServiceClient
-	movieClient mov.MovieServiceClient
-	cinemaClient  cnm.CinemaServiceClient
-	documentClient  doc.DocumentServiceClient
-	kafkaProducer *kafka.KafkaProducer
+	db             *sql.DB
+	userClient     usr.UserServiceClient
+	movieClient    mov.MovieServiceClient
+	cinemaClient   cnm.CinemaServiceClient
+	documentClient doc.DocumentServiceClient
+	kafkaProducer  *kafka.KafkaProducer
 }
 
 func NewBookingServiceServer(db *sql.DB, uc usr.UserServiceClient, cc cnm.CinemaServiceClient,
-									mc mov.MovieServiceClient, dc doc.DocumentServiceClient,
-									producer *kafka.KafkaProducer) v1.BookingServiceServer {
+	mc mov.MovieServiceClient, dc doc.DocumentServiceClient,
+	producer *kafka.KafkaProducer) v1.BookingServiceServer {
 	producer.Init()
-	return &bookingServiceServer{db: db, userClient: uc, movieClient: mc, cinemaClient:cc, documentClient:dc, kafkaProducer: producer}
+	return &bookingServiceServer{db: db, userClient: uc, movieClient: mc, cinemaClient: cc, documentClient: dc, kafkaProducer: producer}
 }
 
 // checkAPI checks if the API version requested by client is supported by server
@@ -73,25 +73,25 @@ func (s *bookingServiceServer) CreateBooking(ctx context.Context, req *v1.Bookin
 		return nil, err
 	}
 
-	user := &usr.FindUserByPhoneResponse{}
+	userRes := &usr.FindUserByPhoneResponse{}
 	if res, err := s.findUserByPhone(ctx, req.PhoneNumber); err != nil || res == nil {
-		return nil, errors.New("Cannot retrieve user by this phone number : " + req.PhoneNumber)
+		return nil, errors.New("Cannot retrieve userRes by this phone number : " + req.PhoneNumber)
 	} else {
-		user = res
+		userRes = res
 	}
 
-	showing := &cnm.ReadShowingResponse{}
+	showingRes := &cnm.ReadShowingResponse{}
 	if res, err := s.findShowingById(ctx, req.ShowingId); err != nil || res == nil {
-		return nil, errors.New("Cannot retrieve showing by this id : " + string(req.ShowingId))
+		return nil, errors.New("Cannot retrieve showingRes by this id : " + string(req.ShowingId))
 	} else {
-		showing = res
+		showingRes = res
 	}
 
-	movie := &mov.ReadMovieResponse{}
-	if res, err := s.findMovieById(ctx, showing.Showing.MovieId); err != nil || res == nil {
-		return nil, errors.New("Cannot retrieve MOVIE by this id : " + string(showing.Showing.MovieId))
+	movieRes := &mov.ReadMovieResponse{}
+	if res, err := s.findMovieById(ctx, showingRes.Showing.MovieId); err != nil || res == nil {
+		return nil, errors.New("Cannot retrieve MOVIE by this id : " + string(showingRes.Showing.MovieId))
 	} else {
-		movie = res
+		movieRes = res
 	}
 
 	orderId, err := util.GenOrderId()
@@ -107,41 +107,41 @@ func (s *bookingServiceServer) CreateBooking(ctx context.Context, req *v1.Bookin
 		log.Fatalf("booking error: %v", err)
 	}
 
-	if req.TotalAmount > showing.Showing.TicketAmounts - bookedAmount {
+	if req.TotalAmount > showingRes.Showing.TicketAmounts-bookedAmount {
 		err := errors.New("there are not enough tickets available")
 		return nil, err
 	}
 
-	booking := model.Booking{ShowingId: req.ShowingId, PhoneNumber: user.User.PhoneNumber, Amount: req.TotalAmount, OrderId: orderId.String()}
+	booking := model.Booking{ShowingId: req.ShowingId, PhoneNumber: userRes.User.PhoneNumber, Amount: req.TotalAmount, OrderId: orderId.String()}
 	result, err := s.saveBooking(ctx, &booking)
 	if result == 0 || err != nil {
 		return nil, err
 	}
 
-	// calculate available tickets percentage and send notification to kafka
-	availableTicketPct := float64(showing.Showing.TicketAmounts - bookedAmount)/float64(bookedAmount)
-	go s.sendNotification(ctx, showing.Showing.Id, &model.Notification{
+	// calculate available tickets percentage and send notification to kafka if it reaches over threshold (< 25%)
+	availableTicketPct := float64(showingRes.Showing.TicketAmounts-(bookedAmount+req.TotalAmount)) / float64(showingRes.Showing.TicketAmounts)
+	s.sendNotification(ctx, showingRes.Showing.Id, &model.Notification{
 		Payload: model.Payload{
-			Cinema: showing.Showing.Cinema.Name,
-			Movie: movie.Movie.Title,
-			AvailableSeats: showing.Showing.TicketAmounts - bookedAmount,
-			TotalSeats: showing.Showing.TicketAmounts,
+			Cinema:         showingRes.Showing.Cinema.Name,
+			Movie:          movieRes.Movie.Title,
+			AvailableSeats: showingRes.Showing.TicketAmounts - bookedAmount,
+			TotalSeats:     showingRes.Showing.TicketAmounts,
 			BookingUser: model.User{
-				Name: user.User.Name,
-				LastName: user.User.LastName,
-				PhoneNumber: user.User.PhoneNumber,
-				Email: user.User.Email,
+				Name:        userRes.User.Name,
+				LastName:    userRes.User.LastName,
+				PhoneNumber: userRes.User.PhoneNumber,
+				Email:       userRes.User.Email,
 			},
 		},
 		Method: model.EMAIL,
-		Type: model.ALERT,
+		Type:   model.ALERT,
 	}, availableTicketPct)
 
 	return &v1.Ticket{
-		Api:  apiVersion,
-		Cinema: showing.Showing.Cinema.Name,
-		Movie: movie.Movie.Title,
-		User: &v1.User{Name: user.User.Name, LastName: user.User.LastName, Email: user.User.Email, PhoneNumber: user.User.PhoneNumber,},
+		Api:     apiVersion,
+		Cinema:  showingRes.Showing.Cinema.Name,
+		Movie:   movieRes.Movie.Title,
+		User:    &v1.User{Name: userRes.User.Name, LastName: userRes.User.LastName, Email: userRes.User.Email, PhoneNumber: userRes.User.PhoneNumber},
 		OrderId: orderId.String(),
 	}, nil
 }
@@ -154,8 +154,7 @@ func (s *bookingServiceServer) getBookedAmount(ctx context.Context, showingId in
 	}
 	defer c.Close()
 
-
-	rows, err := c.QueryContext(ctx, "SELECT SUM(AMOUNT) FROM Booking WHERE `ShowingId`=?", showingId)
+	rows, err := c.QueryContext(ctx, "SELECT SUM(amount) FROM bookings WHERE `showing_id`=?", showingId)
 	if err != nil {
 		return 0, status.Error(codes.Unknown, "failed to select from Booking-> "+err.Error())
 	}
@@ -183,8 +182,8 @@ func (s *bookingServiceServer) saveBooking(ctx context.Context, booking *model.B
 	}
 	defer c.Close()
 
-	result, err := c.ExecContext(ctx, "INSERT INTO Booking(`ShowingId`, `Amount`, `PhoneNumber`, `OrderId`) VALUES(?, ?, ?, ?)",
-													&booking.ShowingId, &booking.Amount, &booking.PhoneNumber, &booking.OrderId)
+	result, err := c.ExecContext(ctx, "INSERT INTO bookings(`showing_id`, `amount`, `phone_number`, `order_id`) VALUES(?, ?, ?, ?)",
+		&booking.ShowingId, &booking.Amount, &booking.PhoneNumber, &booking.OrderId)
 	if err != nil {
 		return 0, status.Error(codes.Unknown, "failed to save Booking-> "+err.Error())
 	}
@@ -199,7 +198,7 @@ func (s *bookingServiceServer) sendNotification(ctx context.Context, showingId i
 
 		if success > 0 {
 			// Send an event to kafka
-			s.kafkaProducer.Publish(notification)
+			go s.kafkaProducer.Publish(notification)
 		}
 
 	}
@@ -207,8 +206,9 @@ func (s *bookingServiceServer) sendNotification(ctx context.Context, showingId i
 
 func (s *bookingServiceServer) updateNotify(ctx context.Context, showingId int64) int64 {
 	result, err := s.cinemaClient.SetNotify(ctx, &cnm.SetNotifyRequest{
-		Api:  apiVersion,
-		Value: int64(1),
+		Api:       apiVersion,
+		Value:     int64(1),
+		ShowingId: showingId,
 	})
 	if err != nil {
 		log.Fatalf("set notify error: %v", err)
@@ -220,10 +220,10 @@ func (s *bookingServiceServer) updateNotify(ctx context.Context, showingId int64
 
 }
 
-func (s *bookingServiceServer) findUserByPhone(ctx context.Context, phoneNumber string) (*usr.FindUserByPhoneResponse, error){
+func (s *bookingServiceServer) findUserByPhone(ctx context.Context, phoneNumber string) (*usr.FindUserByPhoneResponse, error) {
 	// find user by phone
 	userRes, err := s.userClient.FindUserByPhone(ctx, &usr.FindUserByPhoneRequest{
-		Api:  apiVersion,
+		Api:         apiVersion,
 		PhoneNumber: phoneNumber,
 	})
 	if err != nil {
@@ -233,10 +233,10 @@ func (s *bookingServiceServer) findUserByPhone(ctx context.Context, phoneNumber 
 	return userRes, nil
 }
 
-func (s *bookingServiceServer) findShowingById(ctx context.Context, showingId int64) (*cnm.ReadShowingResponse, error){
+func (s *bookingServiceServer) findShowingById(ctx context.Context, showingId int64) (*cnm.ReadShowingResponse, error) {
 	showingRes, err := s.cinemaClient.ReadShowing(ctx, &cnm.ReadShowingRequest{
-		Api:  apiVersion,
-		Id: showingId,
+		Api: apiVersion,
+		Id:  showingId,
 	})
 
 	if err != nil {
@@ -246,10 +246,10 @@ func (s *bookingServiceServer) findShowingById(ctx context.Context, showingId in
 	return showingRes, nil
 }
 
-func (s *bookingServiceServer) findMovieById(ctx context.Context, movieId int64) (*mov.ReadMovieResponse, error){
+func (s *bookingServiceServer) findMovieById(ctx context.Context, movieId int64) (*mov.ReadMovieResponse, error) {
 	movieRes, err := s.movieClient.Read(ctx, &mov.ReadMovieRequest{
-		Api:  apiVersion,
-		Id: movieId,
+		Api: apiVersion,
+		Id:  movieId,
 	})
 
 	if err != nil {

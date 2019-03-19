@@ -46,8 +46,6 @@ func (s *userServiceServer) connect(ctx context.Context) (*sql.Conn, error) {
 	return c, nil
 }
 
-
-
 func (s *userServiceServer) Read(ctx context.Context, req *v1.ReadRequest) (*v1.ReadResponse, error) {
 	// check if the API version requested by client is supported by server
 	if err := s.checkAPI(req.Api); err != nil {
@@ -62,7 +60,7 @@ func (s *userServiceServer) Read(ctx context.Context, req *v1.ReadRequest) (*v1.
 	defer c.Close()
 
 	// query User by ID
-	rows, err := c.QueryContext(ctx, "SELECT `ID`, `Name`, `LastName`, `Email`, `PhoneNumber` FROM User WHERE `ID`=?",
+	rows, err := c.QueryContext(ctx, "SELECT `id`, `name`, `last_name`, `email`, `phone_number` FROM users WHERE `id`=?",
 		req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to select from User-> "+err.Error())
@@ -109,7 +107,7 @@ func (s *userServiceServer) FindUserByPhone(ctx context.Context, req *v1.FindUse
 	defer c.Close()
 
 	// query User by Phone
-	rows, err := c.QueryContext(ctx, "SELECT `ID`, `Name`, `LastName`, `Email`, `PhoneNumber` FROM User WHERE `PhoneNumber`=?",
+	rows, err := c.QueryContext(ctx, "SELECT `id`, `name`, `lastName`, `email`, `phone_number` FROM users WHERE `phone_number`=?",
 		req.PhoneNumber)
 	if err != nil {
 		return nil, status.Error(codes.Unknown, "failed to select from User-> "+err.Error())
